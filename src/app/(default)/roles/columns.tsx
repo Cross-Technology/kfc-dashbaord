@@ -16,17 +16,16 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Customer } from "@/types/customer"
-import { Ellipsis } from "lucide-react"
+import { Role } from "@/types/role"
+import { Ellipsis, ShieldAlert, ShieldCheck } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import StatusBadge from "@/components/common/status/status-badge"
+import { Badge } from "@/components/ui/badge"
 
 const SortableColumnHeader = ({
     column,
     title,
 }: {
-    column: Column<Customer, unknown>
+    column: Column<Role, unknown>
     title: string
 }) => {
     const sorted = column.getIsSorted()
@@ -43,18 +42,18 @@ const SortableColumnHeader = ({
     )
 }
 
-type UseCustomerColumnsProps = {
-    onDelete?: (customer: Customer) => void
-    onEdit?: (customer: Customer) => void
+type UseRoleColumnsProps = {
+    onDelete?: (role: Role) => void
+    onEdit?: (role: Role) => void
 }
 
-const CustomerActions = ({
-    customer,
+const RoleActions = ({
+    role,
     labels,
     onDelete,
     onEdit,
 }: {
-    customer: Customer
+    role: Role
     labels: {
         edit: string
         delete: string
@@ -62,13 +61,13 @@ const CustomerActions = ({
         confirmDeleteTitle: string
         confirmDeleteMessage: string
     }
-    onDelete?: (customer: Customer) => void
-    onEdit?: (customer: Customer) => void
+    onDelete?: (role: Role) => void
+    onEdit?: (role: Role) => void
 }) => {
     const [isAlertOpen, setIsAlertOpen] = useState(false)
 
     const handleConfirmDelete = () => {
-        onDelete?.(customer)
+        onDelete?.(role)
         setIsAlertOpen(false)
     }
 
@@ -89,20 +88,24 @@ const CustomerActions = ({
                     <DropdownMenuItem
                         onSelect={(event) => {
                             event.preventDefault()
-                            onEdit?.(customer)
+                            onEdit?.(role)
                         }}
                     >
                         {labels.edit}
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <AlertDialogTrigger asChild>
-                        <DropdownMenuItem
-                            variant="destructive"
-                            onSelect={(event) => event.preventDefault()}
-                        >
-                            {labels.delete}
-                        </DropdownMenuItem>
-                    </AlertDialogTrigger>
+                    {!role.isSystem && (
+                        <>
+                            <DropdownMenuSeparator />
+                            <AlertDialogTrigger asChild>
+                                <DropdownMenuItem
+                                    variant="destructive"
+                                    onSelect={(event) => event.preventDefault()}
+                                >
+                                    {labels.delete}
+                                </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                        </>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
             <AlertDialogContent>
@@ -123,10 +126,10 @@ const CustomerActions = ({
     )
 }
 
-export const useCustomerColumns = ({
+export const useRoleColumns = ({
     onDelete,
     onEdit,
-}: UseCustomerColumnsProps = {}): ColumnDef<Customer>[] => {
+}: UseRoleColumnsProps = {}): ColumnDef<Role>[] => {
 
     return useMemo(
         () => [
@@ -155,114 +158,52 @@ export const useCustomerColumns = ({
                 enableHiding: false,
             },
             {
-                id: "name",
+                accessorKey: "name",
                 enableSorting: true,
                 header: ({ column }) => (
                     <SortableColumnHeader
                         column={column}
-                        title={"Customer"}
+                        title={"Role Name"}
                     />
                 ),
-                accessorFn: (row) => `${row.name}`.trim(),
                 cell: ({ row }) => {
-                    const customer = row.original
-
+                    const role = row.original
                     return (
                         <div className="flex items-center gap-3 min-w-[200px]">
-                            <Avatar className="h-10 w-10 relative overflow-hidden">
-                                <AvatarImage
-                                    src={`${customer.avatar}`}
-                                    alt={customer.name}
-                                    className="object-cover select-none pointer-events-none w-full h-full"
-                                />
-                                <AvatarFallback>
-                                    {customer.name?.charAt(0)}
-                                    {customer.name?.split(" ")[1]?.charAt(0)}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <span className="block font-medium">
-                                    {customer.name}
-                                </span>
-                                <span className="block text-xs text-muted-foreground">
-                                    {customer.email}
-                                </span>
+                            {role.isSystem ? <ShieldAlert className="h-5 w-5 text-destructive" /> : <ShieldCheck className="h-5 w-5 text-primary" />}
+                            <div className="flex flex-col">
+                                <span className="font-medium">{role.name}</span>
+                                {role.isSystem && <span className="text-xs text-muted-foreground mr-1">System Default</span>}
                             </div>
                         </div>
                     )
                 },
             },
             {
-                accessorKey: "phone",
-                enableSorting: true,
-                header: ({ column }) => (
-                    <SortableColumnHeader
-                        column={column}
-                        title="Phone Number"
-                    />
-                ),
+                accessorKey: "description",
+                enableSorting: false,
+                header: "Description",
                 cell: ({ row }) => (
-                    <div className="flex items-center min-w-[150px] text-sm whitespace-normal">
-                        {row.original.phone}
+                    <div className="flex min-w-[250px] max-w-[400px] text-sm text-muted-foreground line-clamp-2">
+                        {row.original.description}
                     </div>
                 )
             },
             {
-                accessorKey: "totalOrders",
+                accessorKey: "userCount",
                 enableSorting: true,
                 header: ({ column }) => (
                     <SortableColumnHeader
                         column={column}
-                        title="Total Orders"
+                        title="Users"
                     />
                 ),
                 cell: ({ row }) => (
-                    <div className="flex items-center min-w-[100px] text-sm">
-                        {row.original.totalOrders}
+                    <div className="flex items-center min-w-[80px]">
+                        <Badge variant="secondary" className="font-mono">
+                            {row.original.userCount}
+                        </Badge>
                     </div>
-                )
-            },
-            {
-                accessorKey: "totalSpent",
-                enableSorting: true,
-                header: ({ column }) => (
-                    <SortableColumnHeader
-                        column={column}
-                        title="Total Spent"
-                    />
-                ),
-                cell: ({ row }) => (
-                    <div className="flex items-center min-w-[100px] text-sm">
-                        ${row.original.totalSpent.toFixed(2)}
-                    </div>
-                )
-            },
-            {
-                accessorKey: "createdAt",
-                enableSorting: true,
-                header: ({ column }) => (
-                    <SortableColumnHeader
-                        column={column}
-                        title="Register Date"
-                    />
-                ),
-                cell: ({ row }) => (
-                    <div className="flex items-center min-w-[100px] text-sm" suppressHydrationWarning>
-                        {new Date(row.original.createdAt).toLocaleDateString()}
-                    </div>
-                )
-            },
-            {
-                accessorKey: "Status",
-                enableSorting: true,
-                header: ({ column }) => (
-                    <SortableColumnHeader
-                        column={column}
-                        title="Status"
-                    />
-                ),
-                cell: ({ row }) => (
-                    <StatusBadge status={row.original.status} />
                 )
             },
             {
@@ -272,14 +213,14 @@ export const useCustomerColumns = ({
                 ),
                 cell: ({ row }) => (
                     <div className="flex justify-center">
-                        <CustomerActions
-                            customer={row.original}
+                        <RoleActions
+                            role={row.original}
                             labels={{
-                                edit: "Edit",
-                                delete: "Delete",
+                                edit: "Edit Role",
+                                delete: "Delete Role",
                                 cancel: "Cancel",
-                                confirmDeleteTitle: "Confirm Delete",
-                                confirmDeleteMessage: "Are you sure you want to delete this customer?",
+                                confirmDeleteTitle: "Delete Role",
+                                confirmDeleteMessage: "Are you sure you want to delete this role? Any users assigned to this role will lose their current permissions.",
                             }}
                             onDelete={onDelete}
                             onEdit={onEdit}

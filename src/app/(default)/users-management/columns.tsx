@@ -16,18 +16,18 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Promotion } from "@/types/promotion"
-import { Ellipsis, Copy, Check } from "lucide-react"
+import { User } from "@/types/user"
+import { Ellipsis, ShieldAlert, ShieldCheck, Shield, LifeBuoy } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import StatusBadge from "@/components/common/status/status-badge"
-import { format } from "date-fns"
+import { formatDistanceToNow } from "date-fns"
 
 const SortableColumnHeader = ({
     column,
     title,
 }: {
-    column: Column<Promotion, unknown>
+    column: Column<User, unknown>
     title: string
 }) => {
     const sorted = column.getIsSorted()
@@ -44,18 +44,18 @@ const SortableColumnHeader = ({
     )
 }
 
-type UsePromotionColumnsProps = {
-    onDelete?: (promotion: Promotion) => void
-    onEdit?: (promotion: Promotion) => void
+type UseUserColumnsProps = {
+    onDelete?: (user: User) => void
+    onEdit?: (user: User) => void
 }
 
-const PromotionActions = ({
-    promotion,
+const UserActions = ({
+    user,
     labels,
     onDelete,
     onEdit,
 }: {
-    promotion: Promotion
+    user: User
     labels: {
         edit: string
         delete: string
@@ -63,13 +63,13 @@ const PromotionActions = ({
         confirmDeleteTitle: string
         confirmDeleteMessage: string
     }
-    onDelete?: (promotion: Promotion) => void
-    onEdit?: (promotion: Promotion) => void
+    onDelete?: (user: User) => void
+    onEdit?: (user: User) => void
 }) => {
     const [isAlertOpen, setIsAlertOpen] = useState(false)
 
     const handleConfirmDelete = () => {
-        onDelete?.(promotion)
+        onDelete?.(user)
         setIsAlertOpen(false)
     }
 
@@ -90,7 +90,7 @@ const PromotionActions = ({
                     <DropdownMenuItem
                         onSelect={(event) => {
                             event.preventDefault()
-                            onEdit?.(promotion)
+                            onEdit?.(user)
                         }}
                     >
                         {labels.edit}
@@ -124,40 +124,19 @@ const PromotionActions = ({
     )
 }
 
-const CodeCell = ({ code }: { code: string }) => {
-    const [copied, setCopied] = useState(false);
-
-    const handleCopy = () => {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(code);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        } else {
-            // Fallback for older browsers or insecure contexts
-            console.warn("Clipboard API not available");
-        }
+const RoleIcon = ({ role }: { role: string }) => {
+    switch (role) {
+        case "admin": return <ShieldAlert className="h-4 w-4 text-red-500" />;
+        case "manager": return <ShieldCheck className="h-4 w-4 text-blue-500" />;
+        case "support": return <LifeBuoy className="h-4 w-4 text-green-500" />;
+        default: return <Shield className="h-4 w-4 text-slate-500" />;
     }
-
-    return (
-        <div className="flex items-center gap-2">
-            <Badge variant="secondary" >
-                {code}
-            </Badge>
-            {/* <button
-                onClick={handleCopy}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                title="Copy code"
-            >
-                {copied ? <Check className="size-3 text-emerald-500" /> : <Copy className="h-4 w-4" />}
-            </button> */}
-        </div>
-    )
 }
 
-export const usePromotionColumns = ({
+export const useUserColumns = ({
     onDelete,
     onEdit,
-}: UsePromotionColumnsProps = {}): ColumnDef<Promotion>[] => {
+}: UseUserColumnsProps = {}): ColumnDef<User>[] => {
 
     return useMemo(
         () => [
@@ -186,108 +165,73 @@ export const usePromotionColumns = ({
                 enableHiding: false,
             },
             {
-                id: "code",
-                enableSorting: true,
-                header: ({ column }) => (
-                    <SortableColumnHeader
-                        column={column}
-                        title={"Promo Code"}
-                    />
-                ),
-                accessorFn: (row) => `${row.code}`.trim(),
-                cell: ({ row }) => <CodeCell code={row.original.code} />
-            },
-            {
                 id: "name",
                 enableSorting: true,
                 header: ({ column }) => (
                     <SortableColumnHeader
                         column={column}
-                        title={"Promotion"}
+                        title={"User Info"}
                     />
                 ),
                 accessorFn: (row) => `${row.name}`.trim(),
                 cell: ({ row }) => {
-                    const promo = row.original
+                    const user = row.original
                     return (
-                        <div className="flex flex-col min-w-[200px]">
-                            <span className="block font-medium">
-                                {promo.name}
-                            </span>
-                            <span className="block text-xs text-muted-foreground max-w-[250px] truncate">
-                                {promo.description}
-                            </span>
+                        <div className="flex items-center gap-3 min-w-[200px]">
+                            <Avatar className="h-9 w-9 relative overflow-hidden">
+                                <AvatarImage
+                                    src={`${user.avatar || ''}`}
+                                    alt={user.name}
+                                    className="object-cover select-none pointer-events-none w-full h-full"
+                                />
+                                <AvatarFallback className="bg-primary/10 text-primary uppercase text-xs font-semibold">
+                                    {user.name.charAt(0)}
+                                    {user.name.split(" ")[1]?.charAt(0)}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <span className="block font-medium leading-tight">
+                                    {user.name}
+                                </span>
+                                <span className="block text-xs text-muted-foreground mt-0.5">
+                                    {user.email}
+                                </span>
+                            </div>
                         </div>
                     )
                 },
             },
             {
-                accessorKey: "type",
+                accessorKey: "role",
                 enableSorting: true,
                 header: ({ column }) => (
                     <SortableColumnHeader
                         column={column}
-                        title="Discount"
+                        title="Role"
                     />
                 ),
-                cell: ({ row }) => {
-                    const promo = row.original;
-                    let displayValue = "";
-
-                    if (promo.type === "percentage") {
-                        displayValue = `${promo.value}% OFF`;
-                    } else if (promo.type === "fixed_amount") {
-                        displayValue = `$${promo.value.toFixed(2)} OFF`;
-                    } else if (promo.type === "free_shipping") {
-                        displayValue = "Free Shipping";
-                    }
-
-                    return (
-                        <div className="flex flex-col min-w-[120px] text-sm whitespace-normal">
-                            <span className="font-medium text-destructive">{displayValue}</span>
-                            {promo.minSpend && (
-                                <span className="text-xs text-muted-foreground">Min. spend: ${promo.minSpend.toFixed(2)}</span>
-                            )}
-                        </div>
-                    )
-                }
+                cell: ({ row }) => (
+                    <div className="flex items-center gap-2 min-w-[100px] text-sm capitalize">
+                        <RoleIcon role={row.original.role} />
+                        {row.original.role}
+                    </div>
+                )
             },
             {
-                id: "usage",
+                accessorKey: "lastLogin",
                 enableSorting: true,
                 header: ({ column }) => (
                     <SortableColumnHeader
                         column={column}
-                        title="Usage"
+                        title="Last Login"
                     />
                 ),
-                accessorFn: (row) => row.usedCount,
                 cell: ({ row }) => {
-                    const promo = row.original;
+                    const date = new Date(row.original.lastLogin);
+                    const isNever = date.getFullYear() === 1970;
                     return (
-                        <div className="flex items-center min-w-[100px] text-sm">
-                            <span className="font-medium">{promo.usedCount}</span>
-                            {promo.usageLimit && <span className="text-muted-foreground mr-1">/{promo.usageLimit}</span>}
-                        </div>
-                    )
-                }
-            },
-            {
-                id: "validity",
-                enableSorting: true,
-                header: ({ column }) => (
-                    <SortableColumnHeader
-                        column={column}
-                        title="Validity"
-                    />
-                ),
-                accessorFn: (row) => row.endDate,
-                cell: ({ row }) => {
-                    const promo = row.original;
-                    return (
-                        <div className="flex flex-col min-w-[130px] text-xs">
-                            <span className="text-muted-foreground" suppressHydrationWarning>From: {format(promo.startDate, "MMM dd, yyyy")}</span>
-                            <span className="font-medium" suppressHydrationWarning>To: {format(promo.endDate, "MMM dd, yyyy")}</span>
+                        <div className="flex items-center min-w-[120px] text-sm text-muted-foreground" suppressHydrationWarning>
+                            {isNever ? "Never" : formatDistanceToNow(date, { addSuffix: true })}
                         </div>
                     )
                 }
@@ -301,11 +245,9 @@ export const usePromotionColumns = ({
                         title="Status"
                     />
                 ),
-                cell: ({ row }) => {
-                    // Using our default item status translations but could be extended if needed
-                    let statusMapping = row.original.status;
-                    return <StatusBadge status={statusMapping} />
-                }
+                cell: ({ row }) => (
+                    <StatusBadge status={`user-${row.original.status}`} />
+                )
             },
             {
                 accessorKey: "actions",
@@ -314,14 +256,14 @@ export const usePromotionColumns = ({
                 ),
                 cell: ({ row }) => (
                     <div className="flex justify-center">
-                        <PromotionActions
-                            promotion={row.original}
+                        <UserActions
+                            user={row.original}
                             labels={{
-                                edit: "Edit",
-                                delete: "Delete",
+                                edit: "Edit User",
+                                delete: "Delete User",
                                 cancel: "Cancel",
-                                confirmDeleteTitle: "Confirm Delete",
-                                confirmDeleteMessage: "Are you sure you want to delete this promotion?",
+                                confirmDeleteTitle: "Delete User Account",
+                                confirmDeleteMessage: "Are you sure you want to delete this user? All their access will be revoked immediately.",
                             }}
                             onDelete={onDelete}
                             onEdit={onEdit}

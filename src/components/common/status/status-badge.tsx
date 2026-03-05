@@ -8,6 +8,7 @@ import {
   User,
   UserCheck,
   UserX,
+  UserSearch,
   ClockCheck,
   Calendar,
   TicketPercent,
@@ -15,6 +16,15 @@ import {
   Sparkles,
   PackageCheck,
   PackageX,
+  ClockFading,
+  Clock2,
+  AlarmClock,
+  CircleDashed,
+  TriangleAlert,
+  Megaphone,
+  EyeOff,
+  CalendarClock,
+  ArchiveX,
 } from "lucide-react";
 
 type StatusType =
@@ -34,11 +44,19 @@ type StatusType =
   | "inactive"
   | "user-active"
   | "user-inactive"
+  | "user-pending"
   | "available"
   | "out_of_stock"
   | "on_sale"
   | "new_arrival"
-  | "hot_item";
+  | "hot_item"
+  | "progress"
+  | "expired"
+  | "scheduled"
+  | "ann-active"
+  | "ann-inactive"
+  | "ann-scheduled"
+  | "ann-expired";
 
 interface StatusBadgeProps {
   status: StatusType | string | null | undefined;
@@ -59,9 +77,9 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
     absent: { label: "Absent", color: "bg-chart-2/10 text-chart-2", icon: <XCircle size={14} /> },
     day_off: { label: "Day Off", color: "bg-gray-500/10 text-gray-700 dark:text-white/70", icon: <Calendar size={14} /> },
 
-    pending: { label: "Pending", color: "bg-orange-500/5 text-orange-500", icon: <Clock size={14} /> },
-    approved: { label: "Approved", color: "bg-green-600/5 text-green-600", icon: <CheckCircle size={14} /> },
-    rejected: { label: "Rejected", color: "bg-red-500/5 text-red-600", icon: <XCircle size={14} /> },
+    pending: { label: "Pending", color: "bg-orange-500/5 text-orange-500 border border-orange-500/15", icon: <TriangleAlert size={14} /> },
+    approved: { label: "Approved", color: "bg-green-600/5 text-green-600 border border-green-600/15", icon: <CheckCircle size={14} /> },
+    rejected: { label: "Rejected", color: "bg-red-500/5 text-red-600 border border-red-600/15", icon: <XCircle size={14} /> },
 
     available: { label: "Available", color: "bg-green-600/5 text-green-600 border border-green-600/15", icon: <CheckCircle size={14} /> },
     out_of_stock: { label: "Out of Stock", color: "bg-red-500/5 text-red-600 border border-red-600/15", icon: <XCircle size={14} /> },
@@ -74,8 +92,16 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
     male: { label: "Male", color: "bg-blue-500/5 text-blue-600", icon: <User size={14} /> },
     active: { label: "Active", color: "bg-emerald-500/10 text-emerald-600 border border-emerald-600/15", icon: <PackageCheck size={14} /> },
     inactive: { label: "Inactive", color: "bg-red-500/5 text-red-600 border border-red-600/15", icon: <PackageX size={14} /> },
-    "user-active": { label: "User Active", color: "bg-emerald-500/10 text-emerald-600 border border-emerald-600/15", icon: <UserCheck size={14} /> },
-    "user-inactive": { label: "User Inactive", color: "bg-red-500/5 text-red-600 border border-red-600/15", icon: <UserX size={14} /> },
+    "user-active": { label: "Active", color: "bg-emerald-500/10 text-emerald-600 border border-emerald-600/15", icon: <UserCheck size={14} /> },
+    "user-inactive": { label: "Inactive", color: "bg-red-500/5 text-red-600 border border-red-600/15", icon: <UserX size={14} /> },
+    "user-pending": { label: "Pending", color: "bg-orange-500/10 text-orange-600 border border-orange-500/15", icon: <UserSearch size={14} /> },
+    progress: { label: "In Progress", color: "bg-[#0197f6]/10 text-[#0197f6] border border-[#0197f6]/15", icon: <CircleDashed size={14} /> },
+    expired: { label: "Expired", color: "bg-gray-500/10 text-gray-500 border border-gray-500/15", icon: <AlarmClock size={14} /> },
+    scheduled: { label: "Scheduled", color: "bg-yellow-500/10 text-yellow-600 border border-yellow-600/15", icon: <ClockFading size={14} /> },
+    "ann-active": { label: "Active", color: "bg-emerald-500/10 text-emerald-600 border border-emerald-600/15", icon: <Megaphone size={14} /> },
+    "ann-inactive": { label: "Inactive", color: "bg-slate-500/10 text-slate-500 border border-slate-500/15", icon: <EyeOff size={14} /> },
+    "ann-scheduled": { label: "Scheduled", color: "bg-blue-500/10 text-blue-600 border border-blue-600/15", icon: <CalendarClock size={14} /> },
+    "ann-expired": { label: "Expired", color: "bg-gray-500/10 text-gray-500 border border-gray-500/15", icon: <ArchiveX size={14} /> },
   };
 
   const item = status && config[status as StatusType];

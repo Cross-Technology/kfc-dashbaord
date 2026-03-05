@@ -54,6 +54,7 @@ interface DataTableProps<TData, TValue> {
   sorting?: SortingState
   onSortingChange?: OnChangeFn<SortingState>
   searchValue?: string
+  searchKey?: string
   onSearchChange?: (value: string) => void
   isLoading?: boolean
   totalItems?: number
@@ -71,6 +72,7 @@ export function DataTable<TData, TValue>({
   sorting,
   onSortingChange,
   searchValue,
+  searchKey = "name",
   onSearchChange,
   isLoading,
   totalItems,
@@ -161,7 +163,7 @@ export function DataTable<TData, TValue>({
   })
 
   const searchInputValue =
-    searchValue ?? ((table.getColumn("name")?.getFilterValue() as string) ?? "")
+    searchValue ?? ((table.getColumn(searchKey)?.getFilterValue() as string) ?? "")
   const totalRowCount = totalItems ?? table.getFilteredRowModel().rows.length
   const selectedRowCount = table.getFilteredSelectedRowModel().rows.length
   const currentPage = table.getState().pagination.pageIndex + 1
@@ -197,7 +199,7 @@ export function DataTable<TData, TValue>({
               return
             }
 
-            table.getColumn("name")?.setFilterValue(event.target.value)
+            table.getColumn(searchKey)?.setFilterValue(event.target.value)
           }}
 
           className="max-w-sm shadow-none"

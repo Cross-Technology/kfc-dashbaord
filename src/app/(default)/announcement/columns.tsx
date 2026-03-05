@@ -16,8 +16,8 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Promotion } from "@/types/promotion"
-import { Ellipsis, Copy, Check } from "lucide-react"
+import { Announcement } from "@/types/announcement"
+import { Ellipsis, Pin, MessageSquareText } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import StatusBadge from "@/components/common/status/status-badge"
@@ -27,7 +27,7 @@ const SortableColumnHeader = ({
     column,
     title,
 }: {
-    column: Column<Promotion, unknown>
+    column: Column<Announcement, unknown>
     title: string
 }) => {
     const sorted = column.getIsSorted()
@@ -44,18 +44,20 @@ const SortableColumnHeader = ({
     )
 }
 
-type UsePromotionColumnsProps = {
-    onDelete?: (promotion: Promotion) => void
-    onEdit?: (promotion: Promotion) => void
+type UseAnnouncementColumnsProps = {
+    onDelete?: (announcement: Announcement) => void
+    onEdit?: (announcement: Announcement) => void
+    onTogglePin?: (announcement: Announcement) => void
 }
 
-const PromotionActions = ({
-    promotion,
+const AnnouncementActions = ({
+    item,
     labels,
     onDelete,
     onEdit,
+    onTogglePin,
 }: {
-    promotion: Promotion
+    item: Announcement
     labels: {
         edit: string
         delete: string
@@ -63,13 +65,14 @@ const PromotionActions = ({
         confirmDeleteTitle: string
         confirmDeleteMessage: string
     }
-    onDelete?: (promotion: Promotion) => void
-    onEdit?: (promotion: Promotion) => void
+    onDelete?: (announcement: Announcement) => void
+    onEdit?: (announcement: Announcement) => void
+    onTogglePin?: (announcement: Announcement) => void
 }) => {
     const [isAlertOpen, setIsAlertOpen] = useState(false)
 
     const handleConfirmDelete = () => {
-        onDelete?.(promotion)
+        onDelete?.(item)
         setIsAlertOpen(false)
     }
 
@@ -90,10 +93,18 @@ const PromotionActions = ({
                     <DropdownMenuItem
                         onSelect={(event) => {
                             event.preventDefault()
-                            onEdit?.(promotion)
+                            onEdit?.(item)
                         }}
                     >
                         {labels.edit}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onSelect={(event) => {
+                            event.preventDefault()
+                            onTogglePin?.(item)
+                        }}
+                    >
+                        {item.isPinned ? "Unpin" : "Pin message"}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <AlertDialogTrigger asChild>
@@ -124,40 +135,20 @@ const PromotionActions = ({
     )
 }
 
-const CodeCell = ({ code }: { code: string }) => {
-    const [copied, setCopied] = useState(false);
-
-    const handleCopy = () => {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(code);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        } else {
-            // Fallback for older browsers or insecure contexts
-            console.warn("Clipboard API not available");
-        }
-    }
-
+const TargetBadge = ({ target }: { target: string }) => {
+    const label = target === "all" ? "Everyone" : target;
     return (
-        <div className="flex items-center gap-2">
-            <Badge variant="secondary" >
-                {code}
-            </Badge>
-            {/* <button
-                onClick={handleCopy}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                title="Copy code"
-            >
-                {copied ? <Check className="size-3 text-emerald-500" /> : <Copy className="h-4 w-4" />}
-            </button> */}
-        </div>
-    )
-}
+        <Badge variant="outline" className="capitalize text-xs text-muted-foreground font-normal bg-muted/30">
+            {label}
+        </Badge>
+    );
+};
 
-export const usePromotionColumns = ({
+export const useAnnouncementColumns = ({
     onDelete,
     onEdit,
-}: UsePromotionColumnsProps = {}): ColumnDef<Promotion>[] => {
+    onTogglePin,
+}: UseAnnouncementColumnsProps = {}): ColumnDef<Announcement>[] => {
 
     return useMemo(
         () => [
@@ -186,111 +177,68 @@ export const usePromotionColumns = ({
                 enableHiding: false,
             },
             {
-                id: "code",
+                id: "title",
                 enableSorting: true,
                 header: ({ column }) => (
                     <SortableColumnHeader
                         column={column}
-                        title={"Promo Code"}
+                        title={"Announcement Message"}
                     />
                 ),
-                accessorFn: (row) => `${row.code}`.trim(),
-                cell: ({ row }) => <CodeCell code={row.original.code} />
-            },
-            {
-                id: "name",
-                enableSorting: true,
-                header: ({ column }) => (
-                    <SortableColumnHeader
-                        column={column}
-                        title={"Promotion"}
-                    />
-                ),
-                accessorFn: (row) => `${row.name}`.trim(),
+                accessorFn: (row) => `${row.title}`.trim(),
                 cell: ({ row }) => {
-                    const promo = row.original
+                    const item = row.original;
                     return (
-                        <div className="flex flex-col min-w-[200px]">
-                            <span className="block font-medium">
-                                {promo.name}
-                            </span>
-                            <span className="block text-xs text-muted-foreground max-w-[250px] truncate">
-                                {promo.description}
-                            </span>
+                        <div className="flex items-start gap-3 min-w-[280px]">
+                            <div className="mt-1 flex-shrink-0 text-muted-foreground/60 hidden sm:block">
+                                <MessageSquareText className="h-5 w-5" />
+                            </div>
+                            <div className="flex flex-col gap-1 max-w-[400px]">
+                                <div className="flex items-center gap-2">
+                                    <span className="block font-medium text-sm leading-tight">
+                                        {item.title}
+                                    </span>
+                                    {item.isPinned && <Pin className="h-3 w-3 text-orange-500 fill-orange-500 flex-shrink-0 rotate-45" />}
+                                </div>
+                                <span className="block text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                                    {item.content}
+                                </span>
+                            </div>
                         </div>
                     )
                 },
             },
             {
-                accessorKey: "type",
+                accessorKey: "target",
                 enableSorting: true,
                 header: ({ column }) => (
                     <SortableColumnHeader
                         column={column}
-                        title="Discount"
+                        title="Target Audience"
                     />
                 ),
-                cell: ({ row }) => {
-                    const promo = row.original;
-                    let displayValue = "";
-
-                    if (promo.type === "percentage") {
-                        displayValue = `${promo.value}% OFF`;
-                    } else if (promo.type === "fixed_amount") {
-                        displayValue = `$${promo.value.toFixed(2)} OFF`;
-                    } else if (promo.type === "free_shipping") {
-                        displayValue = "Free Shipping";
-                    }
-
-                    return (
-                        <div className="flex flex-col min-w-[120px] text-sm whitespace-normal">
-                            <span className="font-medium text-destructive">{displayValue}</span>
-                            {promo.minSpend && (
-                                <span className="text-xs text-muted-foreground">Min. spend: ${promo.minSpend.toFixed(2)}</span>
-                            )}
-                        </div>
-                    )
-                }
+                cell: ({ row }) => (
+                    <div className="flex min-w-[100px]">
+                        <TargetBadge target={row.original.target} />
+                    </div>
+                )
             },
             {
-                id: "usage",
+                id: "publishDate",
                 enableSorting: true,
                 header: ({ column }) => (
                     <SortableColumnHeader
                         column={column}
-                        title="Usage"
+                        title="Published"
                     />
                 ),
-                accessorFn: (row) => row.usedCount,
-                cell: ({ row }) => {
-                    const promo = row.original;
-                    return (
-                        <div className="flex items-center min-w-[100px] text-sm">
-                            <span className="font-medium">{promo.usedCount}</span>
-                            {promo.usageLimit && <span className="text-muted-foreground mr-1">/{promo.usageLimit}</span>}
-                        </div>
-                    )
-                }
-            },
-            {
-                id: "validity",
-                enableSorting: true,
-                header: ({ column }) => (
-                    <SortableColumnHeader
-                        column={column}
-                        title="Validity"
-                    />
-                ),
-                accessorFn: (row) => row.endDate,
-                cell: ({ row }) => {
-                    const promo = row.original;
-                    return (
-                        <div className="flex flex-col min-w-[130px] text-xs">
-                            <span className="text-muted-foreground" suppressHydrationWarning>From: {format(promo.startDate, "MMM dd, yyyy")}</span>
-                            <span className="font-medium" suppressHydrationWarning>To: {format(promo.endDate, "MMM dd, yyyy")}</span>
-                        </div>
-                    )
-                }
+                accessorFn: (row) => row.publishDate,
+                cell: ({ row }) => (
+                    <div className="flex flex-col min-w-[100px] text-sm">
+                        <span suppressHydrationWarning>{format(row.original.publishDate, "MMM dd, yyyy")}</span>
+                        <span className="text-xs text-muted-foreground">by {row.original.author}</span>
+                    </div>
+                )
             },
             {
                 accessorKey: "Status",
@@ -301,11 +249,9 @@ export const usePromotionColumns = ({
                         title="Status"
                     />
                 ),
-                cell: ({ row }) => {
-                    // Using our default item status translations but could be extended if needed
-                    let statusMapping = row.original.status;
-                    return <StatusBadge status={statusMapping} />
-                }
+                cell: ({ row }) => (
+                    <StatusBadge status={`ann-${row.original.status}`} />
+                )
             },
             {
                 accessorKey: "actions",
@@ -314,22 +260,23 @@ export const usePromotionColumns = ({
                 ),
                 cell: ({ row }) => (
                     <div className="flex justify-center">
-                        <PromotionActions
-                            promotion={row.original}
+                        <AnnouncementActions
+                            item={row.original}
                             labels={{
                                 edit: "Edit",
                                 delete: "Delete",
                                 cancel: "Cancel",
-                                confirmDeleteTitle: "Confirm Delete",
-                                confirmDeleteMessage: "Are you sure you want to delete this promotion?",
+                                confirmDeleteTitle: "Delete Announcement",
+                                confirmDeleteMessage: "Are you sure you want to delete this announcement? This action cannot be undone.",
                             }}
                             onDelete={onDelete}
                             onEdit={onEdit}
+                            onTogglePin={onTogglePin}
                         />
                     </div>
                 ),
             },
         ],
-        [onDelete, onEdit]
+        [onDelete, onEdit, onTogglePin]
     )
 }

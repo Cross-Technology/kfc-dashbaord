@@ -2,33 +2,34 @@
 
 import { DataTable } from "@/components/table/data-table"
 import { Button } from "@/components/ui/button"
-import { Plus, Users } from "lucide-react"
-import { useUserColumns } from "./columns"
-import { userDatas } from "./data"
+import { Megaphone, Plus } from "lucide-react"
+import { useAnnouncementColumns } from "./columns"
+import { announcementDatas } from "./data"
 
-const UsersManagementPageContent = () => {
-    const columns = useUserColumns()
+const AnnouncementPageContent = () => {
+    const columns = useAnnouncementColumns()
     return (
         <section className="@container/main flex flex-1 flex-col gap-5">
             <div className="flex items-center justify-between gap-5">
                 <div className="min-w-80">
                     <h1 className="text-md lg:text-lg font-semibold tracking-tight">
-                        Users Management
+                        Announcements
                     </h1>
-                    <p className="text-sm">Manage system administrators, staff, and their roles</p>
+                    <p className="text-sm">Broadcast messages to customers or team members</p>
                 </div>
                 <Button>
                     <Plus />
-                    Add User
+                    New Announcement
                 </Button>
             </div>
             <DataTable
                 columns={columns}
-                data={userDatas}
+                data={announcementDatas}
                 pageCount={1}
+                searchKey="title"
             />
         </section>
     )
 }
 
-export default UsersManagementPageContent
+export default AnnouncementPageContent

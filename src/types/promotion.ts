@@ -1,4 +1,4 @@
-export type PromotionStatus = "active" | "inactive" | "expired" | "scheduled";
+export type PromotionStatus = "progress" | "expired" | "scheduled" | "pending";
 
 export type PromotionType = "percentage" | "fixed_amount" | "free_shipping";
 

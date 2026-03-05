@@ -190,7 +190,7 @@ export const useAnnouncementColumns = ({
                     const item = row.original;
                     return (
                         <div className="flex items-start gap-3 min-w-[280px]">
-                            <div className="mt-1 flex-shrink-0 text-muted-foreground/60 hidden sm:block">
+                            <div className="mt-1 shrink-0 text-muted-foreground/60 hidden sm:block">
                                 <MessageSquareText className="h-5 w-5" />
                             </div>
                             <div className="flex flex-col gap-1 max-w-[400px]">
@@ -198,7 +198,7 @@ export const useAnnouncementColumns = ({
                                     <span className="block font-medium text-sm leading-tight">
                                         {item.title}
                                     </span>
-                                    {item.isPinned && <Pin className="h-3 w-3 text-orange-500 fill-orange-500 flex-shrink-0 rotate-45" />}
+                                    {item.isPinned && <Pin className="h-3 w-3 text-orange-500 fill-orange-500 shrink-0 rotate-45" />}
                                 </div>
                                 <span className="block text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                                     {item.content}

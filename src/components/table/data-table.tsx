@@ -61,6 +61,7 @@ interface DataTableProps<TData, TValue> {
   pageSizeOptions?: number[]
   filterComponent?: FilterComponent<TData>
   renderExpandedRow?: (row: Row<TData>) => React.ReactNode
+  onRowClick?: (row: Row<TData>) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -79,6 +80,7 @@ export function DataTable<TData, TValue>({
   pageSizeOptions = [10, 20, 30, 40, 50],
   filterComponent,
   renderExpandedRow,
+  onRowClick,
 }: DataTableProps<TData, TValue>) {
   const [internalSorting, setInternalSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -267,6 +269,8 @@ export function DataTable<TData, TValue>({
                   <React.Fragment key={row.id}>
                     <TableRow
                       data-state={row.getIsSelected() && "selected"}
+                      onClick={() => onRowClick && onRowClick(row)}
+                      className={onRowClick ? "cursor-pointer" : ""}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id} className="whitespace-normal">

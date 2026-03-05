@@ -1,0 +1,16 @@
+export const ROUTES = {
+    HOME: "/",
+    ORDERS: "/orders",
+    PRODUCTS: "/products",
+    PRODUCT_FORM: "/products/form",
+    CATEGORIES: "/categories",
+    CUSTOMERS: "/customers",
+    PROMOTION: "/voucher-promotion",
+    SETTINGS: "/settings",
+    PROFILE: "/profile",
+    USERS_MANAGEMENT: "/users-management",
+    ROLES: "/roles",
+    REPORTS: "/reports",
+    BRANCH: "/branch",
+    ANNOUNCEMENT: "/announcement",
+}
